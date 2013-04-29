@@ -8,11 +8,12 @@ TODO:
   - This could be done with a second script?
 """
 
-import os
-import re
-import fnmatch
-import subprocess
+import argparse
 import collections
+import fnmatch
+import re
+import subprocess
+import os
 
 import pyinotify
 
@@ -105,5 +106,13 @@ class Spotter(pyinotify.ProcessEvent):
     def __exit__(self, type, value, traceback):
         self.run_commands(self.exit_commands)
 
+parser = argparse.ArgumentParser(description="Watch files for changes")
+parser.add_argument('filename', help="the spotter file to use")
+parser.add_argument('-v', '--version', action='version', version="0.2")
+
+def main():
+    args = parser.parse_args()
+    Spotter(filename=args.filename).loop()
+
 if __name__ == '__main__':
-    Spotter('.spotter').loop()
+    main()
