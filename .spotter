@@ -1,0 +1,2 @@
+# Echo when python file changes
+*.py -> echo "Python file changed"
