@@ -6,6 +6,7 @@ TODO:
 - Reload on .spotter changes
 - Only print output on error/allow commands to be marked as silent
   - This could be done with a second script?
+- A ~/.spotter-presets/ folder?
 """
 
 import argparse
