@@ -3,9 +3,9 @@
 Watch files and then run commands
 
 TODO:
+- --quiet mode
+- Stop on external program error
 - Reload on .spotter changes
-- Only print output on error/allow commands to be marked as silent
-  - This could be done with a second script?
 - A ~/.spotter-presets/ folder?
 """
 
@@ -18,6 +18,13 @@ import os
 
 import pyinotify
 
+def merge(*dictionaries):
+    """Merge any number of dictionaries into a single dictionary"""
+    dictionary = dict()
+    for d in dictionaries:
+        dictionary.update(d)
+    return dictionary
+
 class Spotter(pyinotify.ProcessEvent):
     INOTIFY_EVENT_MASK = pyinotify.IN_CREATE | pyinotify.IN_CLOSE_WRITE
 
@@ -29,7 +36,7 @@ class Spotter(pyinotify.ProcessEvent):
 
     def __init__(self, filename=None):
         self.definitions = dict()
-        
+
         self.entry_commands = list()
         self.watches = collections.OrderedDict()
         self.exit_commands = list()
@@ -57,7 +64,7 @@ class Spotter(pyinotify.ProcessEvent):
         # self.watches.append((pattern, command))
 
     def read_file(self, filename):
-        """Read the watches and other options from a config file"""        
+        """Read the watches and other options from a config file"""
         with open(filename, 'r') as file:
             for line in file:
                 line = line.strip()
@@ -76,9 +83,7 @@ class Spotter(pyinotify.ProcessEvent):
 
         The command is formatted using the stored definitions and any keyword
         arguments passed to the function."""
-        arguments = dict()
-        arguments.update(self.definitions)
-        arguments.update(kwargs)
+        arguments = merge(self.definitions, kwargs)
         subprocess.call(command.format(**arguments), shell=True)
 
     def run_commands(self, commands, **kwargs):
@@ -103,13 +108,14 @@ class Spotter(pyinotify.ProcessEvent):
             path = os.path.relpath(event.pathname)
             if fnmatch.fnmatch(path, pattern) or path == pattern:
                 return self.run_commands(commands, filename=event.pathname)
-    
+
     def __exit__(self, type, value, traceback):
         self.run_commands(self.exit_commands)
 
 parser = argparse.ArgumentParser(description="Watch files for changes")
-parser.add_argument('filename', help="the spotter file to use")
 parser.add_argument('-v', '--version', action='version', version="0.2")
+parser.add_argument('filename', default=".spotter",
+    help="the spotter file to use")
 
 def main():
     args = parser.parse_args()
