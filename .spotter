@@ -1,2 +1,9 @@
-# Echo when python file changes
-*.py -> echo "Python file changed"
+define: file_changed -> File changed
+
+start: echo "Started watching"
+
+watch-final: *.py -> echo "Python file changed"
+watch: * -> echo "{file_changed}"
+watch: * -> echo "{filename} should not be a python file"
+
+stop: echo "Stopped watching"
