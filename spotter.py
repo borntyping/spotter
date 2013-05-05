@@ -3,7 +3,6 @@
 Watch files and then run commands
 
 TODO:
-- --quiet mode
 - Stop on external program error
 - Reload on .spotter changes
 - A ~/.spotter-presets/ folder?
@@ -40,11 +39,12 @@ class Spotter(pyinotify.ProcessEvent):
     
     COMMANDS = ('define', 'start', 'watch', 'watch-final', 'stop')
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, quiet=False):
         self.definitions = dict()
         self.entry_commands = list()
         self.exit_commands = list()
         self.watches = list()
+        self.quiet = quiet
         
         # Read in the configuration, if initialised with a filename
         if not filename is None:
@@ -101,7 +101,8 @@ class Spotter(pyinotify.ProcessEvent):
         The command is formatted using the stored definitions and any keyword
         arguments passed to the function."""
         command = command.format(**merge(self.definitions, kwargs))
-        subprocess.call(command, shell=True)
+        subprocess.call(command, shell=True, stdout=open(os.devnull, 'wb') if
+                                                    self.quiet else None)
 
     def loop(self):
         """Run the inotify loop inside the context manager"""
@@ -132,12 +133,14 @@ class Spotter(pyinotify.ProcessEvent):
 
 parser = argparse.ArgumentParser(description="Watch files for changes")
 parser.add_argument('-v', '--version', action='version', version="0.2")
+parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False,
+                    help="don't display the output of commands")
 parser.add_argument('filename', nargs='?', default=".spotter",
     help="the spotter file to use")
 
 def main():
     args = parser.parse_args()
-    Spotter(filename=args.filename).loop()
+    Spotter(filename=args.filename, quiet=args.quiet).loop()
 
 if __name__ == '__main__':
     main()
