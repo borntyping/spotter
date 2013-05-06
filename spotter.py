@@ -160,6 +160,10 @@ class Spotter(pyinotify.ProcessEvent):
         for command in self.exit_commands:
             self.run(command)
 
+# --------------------------------------------------
+# Command line interface
+# --------------------------------------------------
+
 parser = argparse.ArgumentParser(description="Watch files for changes")
 parser.add_argument('-v', '--version', action='version', version="0.2")
 parser.add_argument('-q', '--quiet', action='store_true',
@@ -167,9 +171,27 @@ parser.add_argument('-q', '--quiet', action='store_true',
 parser.add_argument('filenames', nargs='*', default=[".spotter"],
     help="the spotter file to use")
 
+def filename_hint(missing_file, prefix='.spotter'):
+    """Print a hint listing other files starting with the given prefix"""
+    print("Could not read file '{}'".format(missing_file))
+    filenames = [f for f in os.listdir('.') if f.startswith(prefix)]
+    if len(filenames) > 1:
+        print("Maybe you meant:")
+        for filename in filenames:
+            print("  " + filename)
+
 def main():
     args = parser.parse_args()
-    Spotter(filenames=args.filenames, quiet=args.quiet).loop()
+
+    spotter = Spotter(quiet=args.quiet)
+
+    try:
+        spotter.read_files(args.filenames)
+    except IOError as error:
+        filename_hint(error.filename)
+        exit(1)
+
+    spotter.loop()
 
 if __name__ == '__main__':
     main()
