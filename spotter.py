@@ -34,6 +34,10 @@ class Watch(object):
         """Return true if the given path matches the watch pattern"""
         return fnmatch.fnmatch(path, self.pattern) or path == self.pattern
 
+    def __repr__(self):
+        return "<Watch{}: {} -> {}>".format(
+            " (final)" if self.final else "", self.pattern, self.command)
+
 class Spotter(pyinotify.ProcessEvent):
     INOTIFY_EVENT_MASK = pyinotify.IN_CREATE | pyinotify.IN_CLOSE_WRITE
     
@@ -98,11 +102,29 @@ class Spotter(pyinotify.ProcessEvent):
     def run(self, command, **kwargs):
         """Run a single command
 
+        Returns True if the command exited with a code of 0, else False
+
+        If ``self.quiet`` is set, the output is redirected and only printed
+        if the command failed.
+
         The command is formatted using the stored definitions and any keyword
         arguments passed to the function."""
         command = command.format(**merge(self.definitions, kwargs))
-        subprocess.call(command, shell=True, stdout=open(os.devnull, 'wb') if
-                                                    self.quiet else None)
+
+        # The output is redirected when running with --quiet
+        stdout = subprocess.PIPE if self.quiet else None
+        stderr = subprocess.STDOUT if self.quiet else None
+        
+        proccess = subprocess.Popen(
+            command, shell=True, stdout=stdout, stderr=stderr)
+
+        return_code = proccess.wait()
+
+        # When running with --quiet, print the output of failed commands
+        if self.quiet and return_code != 0:
+            print(proccess.stdout.read().decode('utf-8'), end="")
+
+        return return_code == 0
 
     def loop(self):
         """Run the inotify loop inside the context manager"""
