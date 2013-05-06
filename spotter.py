@@ -143,11 +143,13 @@ class Spotter(pyinotify.ProcessEvent):
         notifier.loop()
 
     def process_default(self, event):
-        """Run the command associated with the event"""
+        """Run the commands that have a pattern matching the events path
+
+        Stops running commands once one fails or is marked as final"""
         for watch in self.watches:
             if watch.pattern_matches(os.path.relpath(event.pathname)):
-                self.run(watch.command, filename=event.pathname)
-                if watch.final == True:
+                success = self.run(watch.command, filename=event.pathname)
+                if (not success) or (watch.final):
                     break
 
     def __enter__(self):

@@ -3,8 +3,9 @@ define: file_changed -> File changed
 start: echo "Started watching\nThis is a second line"
 
 watch-final: *.py -> echo "Python file changed"
-watch: * -> echo "This command will fail!" && return 1
 watch: * -> echo "{file_changed}"
-watch: * -> echo "{filename} should not be a python file"
+watch: * -> echo "This is not be a python file ({filename})"
+watch: * -> echo "This command will fail!" && return 1
+watch: * -> echo "This command should never run!"
 
 stop: echo "Stopped watching"
