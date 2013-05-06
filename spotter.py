@@ -43,7 +43,7 @@ class Spotter(pyinotify.ProcessEvent):
     
     COMMANDS = ('define', 'start', 'watch', 'watch-final', 'stop')
 
-    def __init__(self, filename=None, quiet=False):
+    def __init__(self, filenames=None, quiet=False):
         self.definitions = dict()
         self.entry_commands = list()
         self.exit_commands = list()
@@ -51,12 +51,17 @@ class Spotter(pyinotify.ProcessEvent):
         self.quiet = quiet
         
         # Read in the configuration, if initialised with a filename
-        if not filename is None:
-            self.read_file(filename)
+        if filenames is not None:
+            self.read_files(filenames)
 
     # --------------------------------------------------
     # Initialisation
     # --------------------------------------------------
+
+    def read_files(self, filenames):
+        """Read in multiple config files"""
+        for filename in filenames:
+            self.read_file(filename)
 
     def read_file(self, filename):
         """Yield each command from a spotter config file"""
@@ -155,14 +160,14 @@ class Spotter(pyinotify.ProcessEvent):
 
 parser = argparse.ArgumentParser(description="Watch files for changes")
 parser.add_argument('-v', '--version', action='version', version="0.2")
-parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', default=False,
-                    help="don't display the output of commands")
-parser.add_argument('filename', nargs='?', default=".spotter",
+parser.add_argument('-q', '--quiet', action='store_true',
+    help="don't display the output of successful commands")
+parser.add_argument('filenames', nargs='*', default=[".spotter"],
     help="the spotter file to use")
 
 def main():
     args = parser.parse_args()
-    Spotter(filename=args.filename, quiet=args.quiet).loop()
+    Spotter(filenames=args.filenames, quiet=args.quiet).loop()
 
 if __name__ == '__main__':
     main()
