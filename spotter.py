@@ -43,12 +43,14 @@ class Spotter(pyinotify.ProcessEvent):
     
     COMMANDS = ('define', 'start', 'watch', 'watch-final', 'stop')
 
-    def __init__(self, filenames=None, quiet=False):
+    def __init__(self, filenames=None, quiet=False, continue_on_fail=False):
         self.definitions = dict()
         self.entry_commands = list()
         self.exit_commands = list()
         self.watches = list()
+        
         self.quiet = quiet
+        self.continue_on_fail = continue_on_fail
         
         # Read in the configuration, if initialised with a filename
         if filenames is not None:
@@ -149,7 +151,7 @@ class Spotter(pyinotify.ProcessEvent):
         for watch in self.watches:
             if watch.pattern_matches(os.path.relpath(event.pathname)):
                 success = self.run(watch.command, filename=event.pathname)
-                if (not success) or (watch.final):
+                if watch.final or (not self.continue_on_fail and not success):
                     break
 
     def __enter__(self):
@@ -168,6 +170,9 @@ parser = argparse.ArgumentParser(description="Watch files for changes")
 parser.add_argument('-v', '--version', action='version', version="0.2")
 parser.add_argument('-q', '--quiet', action='store_true',
     help="don't display the output of successful commands")
+parser.add_argument('-c', '--continue',
+    dest='continue_on_fail', action='store_true',
+    help="continue running commands when one fails")
 parser.add_argument('filenames', nargs='*', default=[".spotter"],
     help="the spotter file to use")
 
@@ -183,7 +188,7 @@ def filename_hint(missing_file, prefix='.spotter'):
 def main():
     args = parser.parse_args()
 
-    spotter = Spotter(quiet=args.quiet)
+    spotter = Spotter(None, args.quiet, args.continue_on_fail)
 
     try:
         spotter.read_files(args.filenames)
