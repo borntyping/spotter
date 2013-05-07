@@ -1,2 +1,10 @@
+# Bytecode
+
 *.pyc
 __pycache__
+
+# Packaging
+
+build/
+dist/
+*.egg-info
