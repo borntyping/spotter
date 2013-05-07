@@ -173,8 +173,9 @@ parser.add_argument('-q', '--quiet', action='store_true',
 parser.add_argument('-c', '--continue',
     dest='continue_on_fail', action='store_true',
     help="continue running commands when one fails")
-parser.add_argument('filenames', nargs='*', default=[".spotter"],
-    help="the spotter file to use")
+parser.add_argument('filenames',
+    nargs='*', default=[".spotter"], metavar="filename",
+    help="a list of files containing directives")
 
 def filename_hint(missing_file, prefix='.spotter'):
     """Print a hint listing other files starting with the given prefix"""
