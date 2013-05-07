@@ -3,9 +3,7 @@
 Watch files and then run commands
 
 TODO:
-- Stop on external program error
 - Reload on .spotter changes
-- A ~/.spotter-presets/ folder?
 """
 
 import argparse
