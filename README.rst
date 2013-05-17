@@ -2,6 +2,14 @@
 spotter
 =======
 
+.. image:: https://pypip.in/v/spotter/badge.png
+    :target: https://crate.io/packages/spotter/
+    :alt: Latest PyPI version
+
+.. image:: https://pypip.in/d/spotter/badge.png
+    :target: https://crate.io/packages/spotter/
+    :alt: Number of PyPI downloads
+
 Spotter is a simple command line tool for watching files and running shell commands when they change.
 Directives are read from a text file, and spotter will look for a file named ``.spotter`` in the current directory if no filenames are given.
 
