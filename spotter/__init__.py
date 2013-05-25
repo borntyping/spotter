@@ -2,9 +2,15 @@
 """
 Watch files and then run commands
 
-TODO:
-- Reload on .spotter changes
+Written by Sam Clements (sam@borntyping.co.uk),
+and released under the MIT license.
+
+http://github.com/borntyping/spotter
 """
+
+from __future__ import print_function, unicode_literals
+
+__version__ = '1.1'
 
 import argparse
 import collections
