@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Watch files and then run commands
 
