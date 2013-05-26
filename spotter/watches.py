@@ -1,5 +1,7 @@
 """Watch and watch-file data structures"""
 
+from __future__ import absolute_import, print_function, unicode_literals
+
 class Watch(object):
     """A filename pattern and a shell command"""
 

@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'spotter',
-    version          = '1.1',
+    version          = '1.2',
     url              = "http://github.com/borntyping/spotter",
 
     author           = "Sam Clements",
@@ -19,6 +19,8 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Operating System :: Unix',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Topic :: Software Development :: Testing',

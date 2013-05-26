@@ -14,7 +14,7 @@ Spotter is a simple command line tool for watching files and running shell comma
 Directives are read from a text file, and spotter will look for a file named ``.spotter`` in the current directory if no filenames are given.
 
 Usage
-=========
+=====
 
 ::
 
@@ -28,6 +28,12 @@ Optional arguments:
     * ``-v``, ``--version``: Show the current version number.
     * ``-q``, ``--quiet``: The output of commands is not printed unless they fail.
     * ``-c``, ``--continue``: Failed commands will not stop spotter from continuing.
+
+Spotter can also be run as a python module:
+
+::
+
+    python -m spotter ...
 
 Directives
 ==========
