@@ -2,8 +2,8 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import fnmatch
 import subprocess
+import os
 
 import pyinotify
 
@@ -43,7 +43,7 @@ class Spotter(pyinotify.ProcessEvent):
 
         Stops running commands once one fails or is marked as final"""
         for watchlist in self.watchlists:
-            for watch in self.all_watches:
+            for watch in watchlist:
                 if watch.pattern_matches(os.path.relpath(event.pathname)):
                     success = self.run(watch.command,
                         filename=event.pathname, **watchlist.definitions)

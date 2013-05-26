@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
+import fnmatch
+
 class Watch(object):
     """A filename pattern and a shell command"""
 
