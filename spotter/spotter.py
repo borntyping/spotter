@@ -35,7 +35,7 @@ class Spotter(pyinotify.ProcessEvent):
     def inotify_loop(self):
         watch_manager = pyinotify.WatchManager()
         notifier = pyinotify.Notifier(watch_manager, self)
-        watch_manager.add_watch('.', Spotter.INOTIFY_EVENT_MASK, rec=True)
+        watch_manager.add_watch('.', Spotter.INOTIFY_EVENT_MASK, rec=True, auto_add=True)
         notifier.loop()
 
     def process_default(self, event):
