@@ -4,6 +4,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import subprocess
 import os
+import sys
 
 import pyinotify
 
@@ -40,13 +41,16 @@ class Spotter(pyinotify.ProcessEvent):
 
     def process_default(self, event):
         """Run the commands that have a pattern matching the events path
-
+        
         Stops running commands once one fails or is marked as final"""
+        path = event.pathname.decode(sys.getfilesystemencoding())
+        
         for watchlist in self.watchlists:
             for watch in watchlist:
-                if watch.pattern_matches(os.path.relpath(event.pathname)):
-                    success = self.run(watch.command,
-                        filename=event.pathname, **watchlist.definitions)
+                if watch.pattern_matches(os.path.relpath(path)):
+                    success = self.run(
+                        watch.command,
+                        filename=path, **watchlist.definitions)
                     # Always stop if the watch was final
                     if watch.final:
                         break
@@ -68,7 +72,8 @@ class Spotter(pyinotify.ProcessEvent):
         stdout = subprocess.PIPE if self.options.quiet else None
         stderr = subprocess.STDOUT if self.options.quiet else None
 
-        proccess = subprocess.Popen(command.format(**kwargs),
+        proccess = subprocess.Popen(
+            command.format(**kwargs),
             shell=True, stdout=stdout, stderr=stderr)
 
         return_code = proccess.wait()
