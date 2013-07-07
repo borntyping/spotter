@@ -2,94 +2,113 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import subprocess
+import collections
 import os
-import sys
+import time
+import subprocess
 
 import pyinotify
 
-from spotter.watches import WatchFile
+class Watch(object):
+    def __init__(self, path, command, exclude=[], minimum_interval=1.00):
+        self.path = path
+        self.command = command
+        self.exclude = [os.path.join(self.path, path) for path in exclude]
 
-class Spotter(pyinotify.ProcessEvent):
-    INOTIFY_EVENT_MASK = pyinotify.IN_CREATE | pyinotify.IN_CLOSE_WRITE
+        self.minimum_interval = minimum_interval
+        self.last_executed = time.time() - self.minimum_interval
 
-    def __init__(self, options, start=False):
-        self.options = options
-        self.watchlists = list()
+    def run_if_interval_passed(self, event):
+        """Run if the minimum interval has passed since the last run"""
+        if time.time() - self.last_executed > self.minimum_interval:
+            self.last_executed = time.time()
+            return self.run_command(event)
+        else:
+            return None
 
-        if self.options.filenames is not None:
-            self.read_files(self.options.filenames)
+    def run_command(self, event):
+        """Run the Watch's command and wait for it to finish"""
+        command = self.command.format(filename=event.pathname)
+        proccess = subprocess.Popen(command, shell=True)
+        return (proccess.wait() == 0)
 
-        if start:
-            self.loop()
+    def exclude_filter(self, path):
+        """Used by pyinotify to filter paths that the watch will not match"""
+        return path in self.exclude
 
-    def read_files(self, filenames):
-        for filename in filenames:
-            self.watchlists.append(WatchFile(filename))
+    def __repr__(self):
+        return "<Watch: '{}' {}>".format(self.path, self.exclude)
 
-    def loop(self):
-        """Run the inotify loop, running the entry and exit commands with a
-        context manager."""
-        with self:
-            self.inotify_loop()
+class SpotterLoader(object):
+    Data = collections.namedtuple('Data', ['watches', 'start', 'stop'])
 
-    def inotify_loop(self):
-        watch_manager = pyinotify.WatchManager()
-        notifier = pyinotify.Notifier(watch_manager, self)
-        watch_manager.add_watch('.', Spotter.INOTIFY_EVENT_MASK, rec=True, auto_add=True)
+    def __init__(self, spotter, filename):
+        self.spotter = spotter
+        self.filename = filename
+
+        # The watch ids managed by this loader
+        self.watch_ids = set()
+
+    def read(self):
+        """Return the data read from the configuration file"""
+        return self.Data([
+            Watch("README.*", "echo README updated"),
+            Watch("spotter/*.py", "echo {filename}", exclude=["__pycache__"])
+        ], [], [])
+
+    def load(self, data=None):
+        """Load the read data into the spotter instance"""
+        if data is None:
+            data = self.read()
+        
+        for watch in data.watches:
+            descriptors = self.spotter.add_watch(watch)
+            self.watch_ids.update(descriptors.values())
+
+    def unload(self):
+        """Unload all watches managed by this loader"""
+        for wd in self.watch_ids:
+            self.spotter.rm_watch(wd)
+        self.watch_ids = set()
+
+    def reload(self, event):
+        """Unload and load the data, but only if the file parses"""
+        try:
+            data = self.read()
+        except:
+            print("Could not read spotter configuration file", self.filename)
+        else:
+            self.unload()
+            self.load(data)
+        
+class Spotter(object):
+    EVENT_MASK = pyinotify.IN_CREATE | pyinotify.IN_CLOSE_WRITE
+
+    def __init__(self, filename):
+        self.loader = SpotterLoader(self, filename)
+        self.watch_manager = pyinotify.WatchManager()
+        self.watch_manager.add_watch(
+            filename, self.EVENT_MASK, proc_fun=self.loader.reload)
+
+        self.loader.load()
+
+    def add_watch(self, watch):
+        """Adds a watch object to the WatchManager"""
+        return self.watch_manager.add_watch(
+            watch.path, self.EVENT_MASK,
+            auto_add=True, rec=True, do_glob=True,
+            proc_fun=watch.run_if_interval_passed,
+            exclude_filter=watch.exclude_filter)
+
+    def rm_watch(self, wd):
+        """Removes a watch from the WatchManager"""
+        self.watch_manager.rm_watch(wd)
+
+    def describe_watches(self):
+        print("Watching", ', '.join([v.path for v in self.watch_manager.watches.values()]))
+
+    def go(self):
+        # Start notifying for watches
+        notifier = pyinotify.Notifier(self.watch_manager)
+        notifier.coalesce_events()
         notifier.loop()
-
-    def process_default(self, event):
-        """Run the commands that have a pattern matching the events path
-        
-        Stops running commands once one fails or is marked as final"""
-        path = event.pathname.decode(sys.getfilesystemencoding())
-        
-        for watchlist in self.watchlists:
-            for watch in watchlist:
-                if watch.pattern_matches(os.path.relpath(path)):
-                    success = self.run(
-                        watch.command,
-                        filename=path, **watchlist.definitions)
-                    # Always stop if the watch was final
-                    if watch.final:
-                        break
-                    # Stop if we failed without --continue-on-fail
-                    if not (success or self.options.continue_on_fail):
-                        break
-
-    def run(self, command, **kwargs):
-        """Run a single command
-
-        Returns True if the command exited with a code of 0, else False
-
-        If ``self.quiet`` is set, the output is redirected and only printed
-        if the command failed. The output is not redirected and then printed
-        when it can be avoided, so that output is instant.
-
-        The command is formatted using the stored definitions and any keyword
-        arguments passed to the function."""
-        stdout = subprocess.PIPE if self.options.quiet else None
-        stderr = subprocess.STDOUT if self.options.quiet else None
-
-        proccess = subprocess.Popen(
-            command.format(**kwargs),
-            shell=True, stdout=stdout, stderr=stderr)
-
-        return_code = proccess.wait()
-
-        # When running with --quiet, print the output of failed commands
-        if self.options.quiet and return_code != 0:
-            print(proccess.stdout.read().decode('utf-8'), end="")
-
-        return (return_code == 0)
-
-    def __enter__(self):
-        for watchlist in self.watchlists:
-            for command in watchlist.entry_commands:
-                self.run(command)
-
-    def __exit__(self, type, value, traceback):
-        for watchlist in self.watchlists:
-            for command in watchlist.exit_commands:
-                self.run(command)

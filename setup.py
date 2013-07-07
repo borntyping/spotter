@@ -4,8 +4,8 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'spotter',
-    version          = '1.5',
-    url              = "http://github.com/borntyping/spotter",
+    version          = '2.0.0',
+    url              = "https://github.com/borntyping/spotter",
 
     author           = "Sam Clements",
     author_email     = "sam@borntyping.co.uk",
@@ -24,7 +24,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Topic :: Software Development :: Testing',
-        'Topic :: System :: Monitoring',
         'Topic :: Utilities',
     ],
 

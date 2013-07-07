@@ -2,30 +2,6 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import fnmatch
-
-class Watch(object):
-    """A filename pattern and a shell command"""
-
-    __slots__ = ('pattern', 'command', 'final')
-    
-    def __init__(self, pattern, command, final=False):
-        self.pattern = pattern
-        self.command = command
-        self.final = final
-
-    def pattern_matches(self, path):
-        """Return true if the given path matches the watch pattern"""
-        return fnmatch.fnmatch(path, self.pattern) or path == self.pattern
-
-    def __repr__(self):
-        return "<Watch{}: {} -> {}>".format(
-            " (final)" if self.final else "", self.pattern, self.command)
-
-    def __str__(self):
-        return "watch{}: {} -> {}".format(
-            "-final" if self.final else "", self.pattern, self.command)
-
 class WatchList(list):
     """A list of watches, and the associated definitions"""
     
