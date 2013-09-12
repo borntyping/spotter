@@ -74,7 +74,7 @@ class WatchFile(WatchList):
 
     def read_line(self, line):
         """Read in a single line and return a (directive, arguments) tuple"""
-        directive, arguments = line.split(':')
+        directive, arguments = line.split(':', 1)
         arguments = [a.strip() for a in arguments.split('->')]
         self.read_directive(directive.strip(), *arguments)
 
