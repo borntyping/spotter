@@ -10,6 +10,7 @@ import pyinotify
 
 from spotter.watches import WatchFile
 
+
 class Spotter(pyinotify.ProcessEvent):
     INOTIFY_EVENT_MASK = pyinotify.IN_CREATE | pyinotify.IN_CLOSE_WRITE
 
@@ -25,7 +26,12 @@ class Spotter(pyinotify.ProcessEvent):
 
     def read_files(self, filenames):
         for filename in filenames:
-            self.watchlists.append(WatchFile(filename))
+            try:
+                self.watchlists.append(WatchFile(filename))
+            except IOError as e:
+                if e.errno is not 2:
+                    raise e
+                sys.exit("No such file or directory: %s" % filename)
 
     def loop(self):
         """Run the inotify loop, running the entry and exit commands with a
@@ -41,10 +47,10 @@ class Spotter(pyinotify.ProcessEvent):
 
     def process_default(self, event):
         """Run the commands that have a pattern matching the events path
-        
+
         Stops running commands once one fails or is marked as final"""
         path = event.pathname.decode(sys.getfilesystemencoding())
-        
+
         for watchlist in self.watchlists:
             for watch in watchlist:
                 if watch.pattern_matches(os.path.relpath(path)):
