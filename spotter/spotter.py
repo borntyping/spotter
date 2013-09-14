@@ -6,6 +6,8 @@ import subprocess
 import os
 import sys
 
+import errno
+
 import pyinotify
 
 from spotter.watches import WatchFile
@@ -29,7 +31,7 @@ class Spotter(pyinotify.ProcessEvent):
             try:
                 self.watchlists.append(WatchFile(filename))
             except IOError as e:
-                if e.errno is not 2:
+                if e.errno is not errno.ENOENT:
                     raise e
                 sys.exit("No such file or directory: %s" % filename)
 
