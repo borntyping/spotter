@@ -4,11 +4,12 @@ from __future__ import absolute_import, print_function, unicode_literals
 
 import fnmatch
 
+
 class Watch(object):
     """A filename pattern and a shell command"""
 
     __slots__ = ('pattern', 'command', 'final')
-    
+
     def __init__(self, pattern, command, final=False):
         self.pattern = pattern
         self.command = command
@@ -26,9 +27,10 @@ class Watch(object):
         return "watch{}: {} -> {}".format(
             "-final" if self.final else "", self.pattern, self.command)
 
+
 class WatchList(list):
     """A list of watches, and the associated definitions"""
-    
+
     def __init__(self, iterable=None, definitions=None,
                  entry_commands=None, exit_commands=None):
         super(WatchList, self).__init__(iterable or list())
@@ -53,9 +55,10 @@ class WatchList(list):
             strings.append("start: {}".format(command))
         return "\n".join(strings)
 
+
 class WatchFile(WatchList):
     """A list of watches read directly from a watch-file"""
-    
+
     def __init__(self, filename):
         super(WatchFile, self).__init__()
         self.read_file(filename)
@@ -71,7 +74,7 @@ class WatchFile(WatchList):
 
     def read_line(self, line):
         """Read in a single line and return a (directive, arguments) tuple"""
-        directive, arguments = line.split(':')
+        directive, arguments = line.split(':', 1)
         arguments = [a.strip() for a in arguments.split('->')]
         self.read_directive(directive.strip(), *arguments)
 
