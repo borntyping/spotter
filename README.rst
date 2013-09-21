@@ -6,10 +6,6 @@ spotter
     :target: https://crate.io/packages/spotter/
     :alt: Latest PyPI version
 
-.. image:: https://pypip.in/d/spotter/badge.png
-    :target: https://crate.io/packages/spotter/
-    :alt: Number of PyPI downloads
-
 Spotter is a simple command line tool for watching files and running shell commands when they change.
 Directives are read from a text file, and spotter will look for a file named ``.spotter`` in the current directory if no filenames are given.
 
@@ -85,14 +81,14 @@ Start / Stop
 ------------
 
 ::
-    
+
     start: <command>
     stop: <command>
 
 The start and stop directives can be used to run commands when spotter starts running and when spotter stops running.
 
 ::
-    
+
     start: echo "Started watching files"
     stop: echo "Stopped watching files"
 
@@ -108,7 +104,7 @@ The Define directive allows values to be stored and then included in other direc
 Definitions are included in the commands using `python format specifications <http://docs.python.org/3/library/string.html#formatspec>`_, and are inserted when the command is run, not when the command is loaded.
 
 ::
-    
+
     define: python_command -> python2.6
 
     watch: *.py -> {python_command} "{filename}"
