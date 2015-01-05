@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name             = 'spotter',
-    version          = '1.6',
+    version          = '1.7',
     url              = "http://github.com/borntyping/spotter",
 
     author           = "Sam Clements",
@@ -12,6 +12,7 @@ setup(
 
     description      = "A command line tool for watching files and running shell commands when they change.",
     long_description = open('README.rst').read(),
+    license          = 'MIT',
 
     classifiers      = [
         'Development Status :: 4 - Beta',
