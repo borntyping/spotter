@@ -38,6 +38,6 @@ setup(
     },
 
     install_requires = [
-        'pyinotify==0.9.4',
+        'pyinotify>=0.9.4',
     ],
 )
