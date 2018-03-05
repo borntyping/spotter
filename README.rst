@@ -2,7 +2,7 @@
 spotter
 =======
 
-.. image:: https://pypip.in/v/spotter/badge.png
+.. image:: https://img.shields.io/pypi/v/spotter.svg
     :target: https://crate.io/packages/spotter/
     :alt: Latest PyPI version
 
